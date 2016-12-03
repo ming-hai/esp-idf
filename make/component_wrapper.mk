@@ -46,6 +46,12 @@ COMPONENT_EMBED_TXTFILES ?=
 COMPONENT_ADD_INCLUDEDIRS = include
 COMPONENT_ADD_LDFLAGS = -l$(COMPONENT_NAME)
 
+COMPONENT_ADD_INCLUDEDIRS ?=
+COMPONENT_ADD_LDFLAGS ?=
+COMPONENT_DEPENDS ?=
+COMPONENT_EXTRA_CLEAN ?=
+COMPONENT_EXTRA_INCLUDES ?=
+COMPONENT_SUBMODULES ?=
 
 ################################################################################
 # 2) Include the component.mk for the specific component (COMPONENT_MAKEFILE) to
@@ -79,6 +85,7 @@ COMPONENT_EMBED_OBJS ?= $(addsuffix .bin.o,$(COMPONENT_EMBED_FILES)) $(addsuffix
 # variable with all the include dirs from all the components in random order. This
 # means we can accidentally grab a header from another component before grabbing our own.
 # To make sure that does not happen, re-order the includes so ours come first.
+COMPONENT_PRIV_INCLUDEDIRS ?=
 OWN_INCLUDES:=$(abspath $(addprefix $(COMPONENT_PATH)/,$(COMPONENT_ADD_INCLUDEDIRS) $(COMPONENT_PRIV_INCLUDEDIRS)))
 COMPONENT_INCLUDES := $(OWN_INCLUDES) $(filter-out $(OWN_INCLUDES),$(COMPONENT_INCLUDES))
 
@@ -111,7 +118,7 @@ endef
 # component-specific feature, please don't! What you want is a
 # Makefile.projbuild for your component (see docs/build-system.rst for
 # more.)
-component_project_vars.mk::
+component_project_vars.mk:
 	$(details) "Building component project variables list $(abspath $@)"
 	@echo '# Automatically generated build file. Do not edit.' > $@
 	@echo 'COMPONENT_INCLUDES += $(call MakeVariablePath,$(addprefix $(COMPONENT_PATH)/,$(COMPONENT_ADD_INCLUDEDIRS)))' >> $@
@@ -157,15 +164,15 @@ define GenerateCompileTargets
 # $(1) - directory containing source files, relative to $(COMPONENT_PATH)
 $(1)/%.o: $$(COMPONENT_PATH)/$(1)/%.c $(COMMON_MAKEFILES) $(COMPONENT_MAKEFILE) | $(1)
 	$$(summary) CC $$@
-	$$(CC) $$(CFLAGS) $$(CPPFLAGS) $$(FLAGS_$$(subst .o,,$$(@))) $$(addprefix -I ,$$(COMPONENT_INCLUDES)) $$(addprefix -I ,$$(COMPONENT_EXTRA_INCLUDES)) -I$(1) -c $$< -o $$@
+	$$(CC) $$(CFLAGS) $$(CPPFLAGS) $$(addprefix -I ,$$(COMPONENT_INCLUDES)) $$(addprefix -I ,$$(COMPONENT_EXTRA_INCLUDES)) -I$(1) -c $$< -o $$@
 
 $(1)/%.o: $$(COMPONENT_PATH)/$(1)/%.cpp $(COMMON_MAKEFILES) $(COMPONENT_MAKEFILE) | $(1)
 	$$(summary) CXX $$@
-	$$(CXX) $$(CXXFLAGS) $$(CPPFLAGS) $$(FLAGS_$$(subst .o,,$$(@))) $$(addprefix -I,$$(COMPONENT_INCLUDES)) $$(addprefix -I,$$(COMPONENT_EXTRA_INCLUDES)) -I$(1) -c $$< -o $$@
+	$$(CXX) $$(CXXFLAGS) $$(CPPFLAGS) $$(addprefix -I,$$(COMPONENT_INCLUDES)) $$(addprefix -I,$$(COMPONENT_EXTRA_INCLUDES)) -I$(1) -c $$< -o $$@
 
 $(1)/%.o: $$(COMPONENT_PATH)/$(1)/%.S $(COMMON_MAKEFILES) $(COMPONENT_MAKEFILE) | $(1)
 	$$(summary) AS $$@
-	$$(CC) $$(CPPFLAGS) $$(FLAGS_$$(subst .o,,$$(@))) $$(addprefix -I ,$$(COMPONENT_INCLUDES)) $$(addprefix -I ,$$(COMPONENT_EXTRA_INCLUDES)) -I$(1) -c $$< -o $$@
+	$$(CC) $$(CPPFLAGS) $$(addprefix -I ,$$(COMPONENT_INCLUDES)) $$(addprefix -I ,$$(COMPONENT_EXTRA_INCLUDES)) -I$(1) -c $$< -o $$@
 
 # CWD is build dir, create the build subdirectory if it doesn't exist
 $(1):

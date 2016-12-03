@@ -65,6 +65,7 @@ export BUILD_DIR_BASE
 
 # Component directories. These directories are searched for components.
 # The project Makefile can override these component dirs, or define extra component directories.
+EXTRA_COMPONENT_DIRS ?=
 COMPONENT_DIRS ?= $(PROJECT_PATH)/components $(EXTRA_COMPONENT_DIRS) $(IDF_PATH)/components
 export COMPONENT_DIRS
 
@@ -104,6 +105,8 @@ ifdef TEST_COMPONENTS
 override TEST_COMPONENTS := $(foreach comp,$(TEST_COMPONENTS),$(wildcard $(IDF_PATH)/components/$(comp)/test))
 TEST_COMPONENT_PATHS := $(TEST_COMPONENTS)
 TEST_COMPONENT_NAMES :=  $(foreach comp,$(TEST_COMPONENTS),$(lastword $(subst /, ,$(dir $(comp))))_test)
+else
+TEST_COMPONENT_NAMES :=
 endif
 
 # Initialise project-wide variables which can be added to by
@@ -148,7 +151,7 @@ endif
 	@echo $(ESPTOOLPY_WRITE_FLASH) $(ESPTOOL_ALL_FLASH_ARGS)
 
 # Set default LDFLAGS
-
+EXTRA_LDFLAGS ?=
 LDFLAGS ?= -nostdlib \
 	-L$(IDF_PATH)/lib \
 	-L$(IDF_PATH)/ld \
